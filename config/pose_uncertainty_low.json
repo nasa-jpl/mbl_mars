@@ -1,0 +1,10 @@
+{
+  "var_altimeter": 0.1,
+  "var_pz": 100,
+  "var_tx": 4.0,
+  "var_ty": 4.0,
+  "var_tz": 4.0,
+  "var_yaw":  0.00013538,
+  "var_pitch":  0.00013538,
+  "var_roll":  0.00013538
+}
