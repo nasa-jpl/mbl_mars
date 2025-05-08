@@ -113,7 +113,11 @@ pip install -r requirements.txt
 
 To run the MbL pipeline you need to:
 - provide ortho-projected maps and query observations data generated in [MARTIAN](https://github.com/nasa-jpl/martian)
-- download the [weights](link/to/external/folder/containing/models/weights) folder including the trained models of the observation-to-map matchers, and place it in `~/mbl_mars`. The weights for the Geo-LoFTR and LoFTR models trained MARTIAN data can be found at  `weights/loftr/V1`. The weights folder contains also the off-the-shelf LoFTR model, `weights/loftr/pretrained/outdoor_ds.ckpt`, trained on the MegaDepth dataset (refer to the LoFTR [git repo](https://zju3dv.github.io/loftr/) for further details).
+- download the [weights](link/to/external/folder/containing/models/weights) folder including the trained models of the observation-to-map matchers, and place it in `~/mbl_mars`. It contains the following:
+    - `weights/loftr/V1/geo`: the Geo-LoFTR model trained on MARTIAN data with HiRISE-like maps (0.25 m/pixel resolution).
+    - `weights/loftr/V1/finetuned`: the original LoFTR model fine-tuned on MARTIAN data.
+    - `weights/loftr/pretrained`:  the off-the-shelf LoFTR model trained on the MegaDepth dataset (refer to the LoFTR [git repo](https://zju3dv.github.io/loftr/) for further details).
+    - `weights/loftr/geo_ctx` (experimental): the Geo-LoFTR model fine-tuned on MARTIAN data with CTX-like maps (6 m/pixel resolution).
 
 ## Getting started
 
@@ -196,14 +200,6 @@ python evaluate_mbl.py --method $METHOD \
 <summary> SIFT-related arguments:</summary>
 
 - In case `$METHOD="sift"`,  `--sift_config` (str) takes the path to the json configuration file for SIFT feature extraction. Default configuarations are stored in `./config`.
-</details>
-<details>
-<summary> GAM-related arguments:</summary>
-The Geometry-Aided Matching ([GAM](https://arxiv.org/abs/2211.08712)) method can be used to filter SIFT or LoFTR matches, as alternative to Geo-LoFTR in leveraging geometric context. To employ GAM for a baseline comparison, use the following arguments:
-
-- `--use_gam` (bool): enable the GAM filter. Default is False.
-- `--gam_score_thresh` (float): confidence score threshold for GAM filtered matches. Default is 0.1.
-- `--gam_weights_path` (str): path to the GAM model weights.
 </details>
 
 ### Run MbL on search area depending on pose prior uncertainty
