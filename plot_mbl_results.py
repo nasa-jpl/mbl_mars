@@ -39,8 +39,8 @@ plt_utils.plot_loc_acc_vs_az(var_AZ_results_path, model_types, precision=1, map_
 ######## MARTIAN DAY ##########################
 plt_utils.plot_loc_acc_vs_lmst(martian_day_results_path, model_types, precision=1, n_alt_ranges=3, show_title=False, show_suptitle=False)
 
-######## TERRAIN MORPHOLOGY ###################
-plt_utils.plot_loc_acc_vs_alt_per_morphology(morphology_results_path, model_types, precision=1, terrain_type='dunes')
+# ######## TERRAIN MORPHOLOGY ###################
+# plt_utils.plot_loc_acc_vs_alt_per_morphology(morphology_results_path, model_types, precision=1, terrain_type='dunes')
 
 ######## EFFECT OF SCALE CHANGES
 plt_utils.plot_loc_cum_acc(var_EL_results_path, model_types, map_el=40, map_az=180, obs_el=40, obs_az=180, n_alt_ranges=3, show_title=True)
@@ -58,17 +58,6 @@ ctx_model_types = ['geo_ctx_v2', 'geo', 'pretrained','sift']
 plt_utils.plot_loc_cum_acc_alt_range(ctx_results_path,    ctx_model_types, min_alt=64, max_alt=200, map_el=40, map_az=180, obs_el=40, obs_az=180, title=ctx_title)
 plt_utils.plot_loc_cum_acc_alt_range(var_EL_results_path,     model_types, min_alt=64, max_alt=200, map_el=40, map_az=180, obs_el=40, obs_az=180, title=hirise_title)
 
-
-######## GAM COMPARISON ##############
-fig, axs = plt.subplots()
-wo_gam_exp_path = var_EL_results_path
-wo_gam_model_types =['geo', 'finetuned', 'pretrained', 'sift']
-wo_gam_test_nqueries = 500
-w_gam_exp_path = '/Users/dariopisanti/repos/lorna_software_backup/mbl_lab_backup/results/jezero_hirise_baselines_500queries'
-w_gam_test_nqueries = 500
-w_gam_model_types =['finetuned_gam', 'pretrained_gam', 'sift_gam']
-plt_utils.plot_gam_comp(fig, axs, wo_gam_exp_path, wo_gam_model_types, wo_gam_test_nqueries, map_el=40, map_az=180, obs_el=40, obs_az=180)
-plt_utils.plot_gam_comp(fig, axs, w_gam_exp_path ,  w_gam_model_types,  w_gam_test_nqueries, map_el=40, map_az=180, obs_el=40, obs_az=180)
 
 plt.show()
 

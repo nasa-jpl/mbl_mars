@@ -32,17 +32,7 @@ from models.LoFTR.src.utils.plotting import make_matching_figure
 from models.LoFTR_geo.src.loftr import LoFTR_geo
 from models.LoFTR_geo.src.config.default import get_cfg_defaults as get_cfg_defaults_geo
 
-# GAM model
-from models.GAM.src.gam import GAM
-
 ##### Models loading ####################################################################################################
-def load_gam(weights_path):
-    print(f"\nLoading GAM model:")
-    gam = GAM(weights_path)
-    gam = gam.eval()
-    print(f"Loading complete")
-    return gam
-
 def load_loftr(model_type, weights_path):
 
     print(f"\nLoading LoFTR model:")
@@ -158,11 +148,6 @@ if __name__ == '__main__':
     loftr_group.add_argument('--df', type=int, default=8, help='Resize to divisible dimensions')
     loftr_group.add_argument('--img_padding', default=True, action='store_false')
 
-    # GAM argument group
-    gam_group = parser.add_argument_group('gam', 'Arguments related to GAM filter')
-    gam_group.add_argument("--use_gam", default=False, action='store_true', help='Enable GAM filter')
-    gam_group.add_argument("--gam_score_thresh", default=0.1, help="Score threshold for GAM", required=False)
-    gam_group.add_argument("--gam_weights_path", default='weights/gam/bmnet.pth', help="Path to the GAM model", required=False)
     # Pose prior argument group
     pose_prior_group = parser.add_argument_group('pose_prior', 'Arguments related to pose prior')
     pose_prior_group.add_argument('--pose_prior', default=False, action='store_true', help='Enable pose prior options')
@@ -188,7 +173,6 @@ if __name__ == '__main__':
     # Set devce
     if torch.cuda.is_available():
         DEVICE = 'cuda'
-    # elif torch.backends.mps.is_available(): # GAM does not work in mps
     #     DEVICE = 'mps'
     else:
         DEVICE = 'cpu'
@@ -219,10 +203,6 @@ if __name__ == '__main__':
     else:
         raise Exception('Invalid method!')
     
-    # Load filter model (GAM)
-    if args.use_gam:
-        gam = GAM(args.gam_weights_path)
-        gam = gam.eval().to(DEVICE)
 
 
     # Print config and args
@@ -316,8 +296,6 @@ if __name__ == '__main__':
                 method_str = f"{method_name}/{args.loftr_model_type}"
             elif args.method == "sift":
                 method_str = f"{method_name}"
-            if args.use_gam:
-                method_str += "_gam"
             results_dir = os.path.join(args.dest_dir,
                                 os.path.join(sun_comb_name, f"{pose_prior_str}/{method_str}" ) )
             if not os.path.exists(results_dir):
@@ -390,7 +368,7 @@ if __name__ == '__main__':
                 t_query_cw = np.dot(R_query_cw, -t_query_wc)                
 
 
-                # Get nair angle
+                # Get nadir angle
                 nadir_acc.append(np.arccos(np.dot(R_query_wc, np.array([[0],[0],[-1]]))[-1,0])*180/np.pi)
                 altitude_acc.append(altitude)
                 
@@ -463,6 +441,7 @@ if __name__ == '__main__':
                     if args.loftr_model_type == 'geo_ctx':
                         map_win_width  = int(0.75*(search_c_end - search_c_start))
                         map_win_height = int(0.75*(search_r_end - search_r_start))
+                        print(f"map window size: (width, height):{(map_win_width, map_win_height)}")
                     else:
                         map_win_width  = config['WIN_SIZE'] # 1024
                         map_win_height = int((query_img_height / query_img_width)*map_win_width)
@@ -724,63 +703,6 @@ if __name__ == '__main__':
                     #   Unproject map points into map camera coordinate frame
                     match_map_kpts_3d = backproject_ortho_points(match_map_kpts, map_depth, map_px_resolution, R=R_map_wc, T=t_map_wc) # N x 3
                     
-                    if args.use_gam:
-                        match_query_kpts = torch.tensor(match_query_kpts, dtype=torch.float32)
-                        match_query_kpts  = match_query_kpts.to(DEVICE)
-                        match_map_kpts = torch.tensor(match_map_kpts, dtype=torch.float32)
-                        match_map_kpts    = match_map_kpts.to(DEVICE)
-                        match_map_kpts_3d = torch.tensor(match_map_kpts_3d, dtype=torch.float32)
-                        match_map_kpts_3d = match_map_kpts_3d.to(DEVICE)
-                        matches = torch.stack([
-                            torch.arange(len(match_query_kpts), device=DEVICE),
-                            torch.arange(len(match_map_kpts_3d), device=DEVICE)
-                        ], dim=0).long()
-                        gam_input = {
-                            'query_points': match_query_kpts.float(),
-                            'query_shape': torch.tensor((query_img_height, query_img_width)),
-                            'train_points': match_map_kpts_3d.float(),
-                            'matches': matches,
-                            }  
-
-                        gam_out = gam(gam_input)
-                        new_mkpts0_2d, new_mkpts1_2d, new_mkpts1_3d, new_mconf = [], [], [], []
-                        if isinstance(gam_out, dict):
-                            keep = gam_out['scores'] > args.gam_score_thresh
-                            if keep.sum() > 2:
-                                new_mkpts0_2d = match_query_kpts[gam_out['matches'][0][keep]]
-                                new_mkpts1_2d = match_map_kpts[gam_out['matches'][1][keep]]
-                                new_mkpts1_3d = match_map_kpts_3d[gam_out['matches'][1][keep]]
-                                new_mconf = match_conf[keep]
-
-                
-                                match_query_kpts  = new_mkpts0_2d.cpu().numpy()
-                                match_map_kpts    = new_mkpts1_2d.cpu().numpy()
-                                match_map_kpts_3d = new_mkpts1_3d.cpu().numpy()
-                                match_conf        = new_mconf
-                            else:
-                                print("GAM filtered matches are empty.")
-                                success = False
-                                correct_matches_acc.append(10000000)
-                                correct_matches_acc_inliers.append(10000000)
-                                location_err_acc.append(10000000)
-                                nr_pnp_fails += 1
-                                per_query_res.append( {"Total matches": 0,
-                                                    "altitude": float(altitude),
-                                                    "t_query_wc":t_query_wc.astype(np.float64),
-                                                    "R_query_wc":R_query_wc.astype(np.float64)})
-                                print(f"\nNo matches are found for query id: {query_id} - Fail")
-                                
-                                continue
-
-                        if query_id < 100: # Show up to 100 matches figures
-                            # Ucomment to visualize matches with the map crop
-                            save_dir = os.path.join(results_dir, f"matches_w_gam")
-                            if not os.path.exists(save_dir):
-                                os.makedirs(save_dir)
-                            filename = str(query_id)+f"_GAMmatches_to_map_box_{match_params_str}{var_str}.png"
-                            show_matches_on_map(query_img, map_img, match_query_kpts, match_map_kpts, match_conf, top_k=config['TOP_K'], map_box=map_search_box,  path=os.path.join(save_dir, filename))
-
-
                     # Reprojection from map to query
                     #  Transform map points to camera coordinate frame (local3D) of test image, and prohect on the image frame
                     match_query_kpts_reproj = project_on_persp(match_map_kpts_3d, query_intr, R=R_query_cw, T=t_query_cw)

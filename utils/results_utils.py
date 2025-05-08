@@ -7,20 +7,13 @@ import seaborn as sns  # Optional, for smoother KDE plot
 from matplotlib.ticker import MultipleLocator
 
 
-MODEL_COLORS={'pretrained':'tab:blue','finetuned':'tab:orange','geo':'tab:green','sift':'tab:red', 'geo_ctx_v2':'tab:pink',
-              'pretrained_gam':'tab:blue','finetuned_gam':'tab:orange','geo_gam':'tab:green','sift_gam':'tab:red', 'geo_ctx_v2_gam':'tab:pink'}
+MODEL_COLORS={'pretrained':'tab:blue','finetuned':'tab:orange','geo':'tab:green','sift':'tab:red', 'geo_ctx_v2':'tab:pink'}
 MODEL_LABELS={
     "pretrained": "Pre-trained LoFTR",
     "finetuned": "Fine-tuned LoFTR",
     "geo": "Geo-LoFTR",
     "sift":"SIFT",
     "geo_ctx_v2":"Geo-LoFTR, low res.",
-    ######################### + GAM: 
-    "pretrained_gam": "Pre-trained LoFTR + GAM",
-    "finetuned_gam": "Fine-tuned LoFTR + GAM",
-    "geo_gam": "Geo-LoFTR + GAM",
-    "sift_gam":"SIFT + GAM",
-    "geo_ctx_v2_gam":"Geo-LoFTR, low res. + GAM"
 }
 MODEL_LINESTYLE={
     "pretrained": "-",
@@ -28,12 +21,6 @@ MODEL_LINESTYLE={
     "geo": "-",
     "sift":"-",
     "geo_ctx_v2":"-",
-    ######################### + GAM: 
-    "pretrained_gam": "--",
-    "finetuned_gam": "--",
-    "geo_gam": "--",
-    "sift_gam":"--",
-    "geo_ctx_v2_gam":"--"
 }
 #### DATA LOADING #########################
 
@@ -56,7 +43,7 @@ def find_json(path):
     return None
 
 def load_data(base_path, model_type, el, az, obs_el=40, obs_az=180, pose_prior=False, uncertainty="low"):
-    print(f"base_pat: {base_path}")
+    # print(f"base_pat: {base_path}")
     sun_comb_name = f"map_{el}_{az}_obsv_{obs_el}_{obs_az}"
     if pose_prior:
         pose_prior_str = f"pose_uncertainty_{uncertainty}"
@@ -64,14 +51,14 @@ def load_data(base_path, model_type, el, az, obs_el=40, obs_az=180, pose_prior=F
         pose_prior_str = "wo_pose_prior"
 
     if "sift" in model_type:
-        method_str = f"sift_gam" if "gam" in model_type else "sift"
+        method_str = "sift"
     else :
         method_str = f"loftr/{model_type}"
    
     target_path = os.path.join(base_path,
                     os.path.join(sun_comb_name,
                             os.path.join(f"{pose_prior_str}/{method_str}", "accuracy") ) )
-    print(f"target_path: {target_path}")
+    # print(f"target_path: {target_path}")
     filename = find_result_npz(target_path)
     # print(f"filename: {filename}")
     
@@ -87,7 +74,7 @@ def load_data_per_query(base_path, model_type, map_el, map_az, obs_el=40, obs_az
         pose_prior_str = "wo_pose_prior"
 
     if "sift" in model_type:
-        method_str = f"sift_gam" if "gam" in model_type else "sift"
+        method_str = "sift"
     else:
         method_str = f"loftr/{model_type}"  
    
@@ -1151,63 +1138,3 @@ def plot_loc_acc_vs_alt_per_morphology(base_path, model_types, precision=1, terr
     
     if filepath:
         fig.savefig(filepath)
-
-# Comparison w GAM
-def plot_gam_comp(fig, axs, base_path, model_types, test_queries=50, map_el=40, map_az=180, obs_el=40, obs_az=180, pose_prior=False, uncertainty="low", filepath=None):
-    
-    for model_type in model_types:
-        # data = load_json_data(base_path, tests_name, model_type, fixed_el, fixed_az, obs_el, obs_az, n_queries, top_k=top_k, conf_th=conf_th)
-        data = load_data(base_path, model_type, map_el, map_az, obs_el, obs_az, pose_prior=pose_prior, uncertainty=uncertainty)
-        
-        # err_1to0_list = []
-        loc_error = data['location_err_acc']
-        altitude = data['altitude_acc']
-
-
-        loc_error_list = []
-        altitude_list = []
-        for i in range(test_queries):
-            if i < len(altitude):     
-                loc_error_list.append(loc_error[i])
-                altitude_list.append(altitude[i])
-            
-        loc_error = np.array(loc_error_list)
-        altitude = np.array(altitude_list)
-        
-
-        bins = np.arange(0.1, 10, 0.1)
-        # Define quantities in each altitude range
-        # err_1to0_range=err_1to0_splits[row][0].tolist()
-    
-        # Compute cumulative distribution
-        loc_err_cum = [100*np.sum(loc_error < Th) / len(loc_error) for Th in bins]
-        corr_loc = 100*np.sum(loc_error < 1) / len(loc_error)
-        corr_loc_5m = 100*np.sum(loc_error < 5) / len(loc_error)
-        fail_loc = 100*np.sum(loc_error > 10000) / len(loc_error)
-        
-        # Create label with additional info     
-        # umulative pose accuracy vs bins
-        label = f"{MODEL_LABELS[model_type]}\n(@1m: {'{:.1f}'.format(corr_loc)}%, @5m: {'{:.1f}'.format(corr_loc_5m)}%)"
-        color = MODEL_COLORS[model_type]
-        linestyle = MODEL_LINESTYLE[model_type]
-        axs.plot(bins, loc_err_cum, label=label, linewidth=4, linestyle=linestyle, color=color)
-        axs.set_ylim(0, 101)
-        axs.set_xlim(0, 10)
-
-        # axs[row, col].legend(fontsize=10)
-
-        # Make the legend, labels, and ticks larger     
-        axs.set_ylabel('Cumulative Accuracy [%]', fontsize=36)
-        axs.set_xlabel('Localization error [m]', fontsize=36)
-        # axs.legend(fontsize=28, loc='upper left', bbox_to_anchor=(0.35, 0.4))
-        axs.legend(fontsize=26)
-        axs.tick_params(axis='both', which='major', labelsize=32)
-        axs.grid(True)
-        axs.yaxis.set_major_locator(MultipleLocator(10))
-        fig.set_size_inches(10, 10)
-        fig.tight_layout(rect=[0, 0, 1, 0.96])
-           
-    # fig.suptitle(f'Cumulative Pose Accuracy \nAZ diff: {fixed_az - obs_az} deg, EL diff: {fixed_el - obs_el} deg \nAltitude range: 64-200m', fontsize=22)
-    if filepath:
-        fig.savefig(filepath)
-
