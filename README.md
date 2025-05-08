@@ -117,7 +117,7 @@ To run the MbL pipeline you need to:
     - `weights/loftr/V1/geo`: the Geo-LoFTR model trained on MARTIAN data with HiRISE-like maps (0.25 m/pixel resolution).
     - `weights/loftr/V1/finetuned`: the original LoFTR model fine-tuned on MARTIAN data.
     - `weights/loftr/pretrained`:  the off-the-shelf LoFTR model trained on the MegaDepth dataset (refer to the LoFTR [git repo](https://zju3dv.github.io/loftr/) for further details).
-    - `weights/loftr/geo_ctx` (experimental): the Geo-LoFTR model fine-tuned on MARTIAN data with CTX-like maps (6 m/pixel resolution).
+    - `weights/loftr/geo_ctx` (experimental): the Geo-LoFTR model fine-tuned on MARTIAN data with CTX-like maps (6 m/pixel resolution) and to be used for matching onto lower resolution maps.
 
 ## Getting started
 
