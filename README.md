@@ -240,7 +240,7 @@ python evaluate_matching_mars.py --method $METHOD \
 
 ## Plotting
 
-The plots for the MbL evaluation in [Pisanti et al. 2025](https://arxiv.org/abs/2502.09795) have been obtained by running from root:
+The plots for the MbL evaluation in [Pisanti et al. 2026](https://arxiv.org/abs/2502.09795) have been obtained by running from root:
 
 ```
 python plot_mbl_results.py
