@@ -113,7 +113,7 @@ pip install -r requirements.txt
 
 To run the MbL pipeline you need to:
 - provide ortho-projected maps and query observations data generated in [MARTIAN](https://github.com/nasa-jpl/martian)
-- download the [weights](link/to/external/folder/containing/models/weights) folder including the trained models of the observation-to-map matchers, and place it in `~/mbl_mars`. It contains the following:
+- download the [weights](https://huggingface.co/dpisanti/mbl-mars) folder including the trained models of the observation-to-map matchers, and place it in `~/mbl_mars`. It contains the following:
     - `weights/loftr/V1/geo`: the Geo-LoFTR model trained on MARTIAN data with HiRISE-like maps (0.25 m/pixel resolution).
     - `weights/loftr/V1/finetuned`: the original LoFTR model fine-tuned on MARTIAN data.
     - `weights/loftr/pretrained`:  the off-the-shelf LoFTR model trained on the MegaDepth dataset (refer to the LoFTR [git repo](https://zju3dv.github.io/loftr/) for further details).
@@ -251,17 +251,20 @@ For specific plotting functions please refer to `./utils/results_utils.py`
 ## Citation
 If you find our work useful in your research, please use the following BibTeX entry:
 ```
-@article{pisanti2025vision,
-  title={Vision-based Geo-Localization of Future Mars Rotorcraft in Challenging Illumination Conditions},
-  author={Pisanti, Dario and Hewitt, Robert and Brockers, Roland and Georgakis, Georgios},
-  journal={arXiv preprint arXiv:2502.09795},
-  year={2025}
+@misc{pisanti2026geometryaidedvisionbasedlocalizationfuture,
+      title={Geometry-aided Vision-based Localization of Future Mars Helicopters in Challenging Illumination Conditions}, 
+      author={Dario Pisanti and Robert Hewitt and Roland Brockers and Georgios Georgakis},
+      year={2026},
+      eprint={2502.09795},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2502.09795}, 
 }
 ```
 
 ## Copyright
 ```
-Copyright 2025, by the California Institute of Technology. ALL RIGHTS RESERVED. 
+Copyright 2026, by the California Institute of Technology. ALL RIGHTS RESERVED. 
 United States Government Sponsorship acknowledged. 
 Any commercial use must be negotiated with the Office of Technology Transfer at the California Institute of Technology.
  
